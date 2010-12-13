@@ -1,0 +1,71 @@
+# This spec file is optimized for Fedora
+Name:           simple-image-reducer
+Version:        1.0
+Release:        1%{?dist}
+Summary:        Reduce and rotate images in three-four clicks
+
+Group:          Applications/Multimedia
+License:        GPL
+URL:            http://simple-image-reducer.org.ua/
+Source0:        http://simple-image-reducer.org.ua/download/%{name}-%{version}.tar.bz2
+BuildArch:      noarch
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}root-%(%{__id_u} -n)
+
+BuildRequires: desktop-file-utils
+BuildRequires: gettext
+BuildRequires: intltool
+BuildRequires: findutils
+BuildRequires: python
+
+Requires: python >= 2.4
+Requires: pygtk2 >= 2.12
+Requires: gtk2
+Requires: python-imaging
+Requires: python-exif
+
+%description
+Simple Image Reducer - is an GTK application to simple reduce and rotate
+images. The program can be useful for processing digital photos before sending
+by e-mail or uploading on the web. Image files can be supplied to the
+application from the file manager using the context menu "Open with...", or
+dragging files to the main window.
+
+
+%prep
+%setup -q
+
+%build
+make %{?_smp_mflags}
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+
+%find_lang %name
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%post
+update-desktop-database &> /dev/null || :
+touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+
+%postun
+if [ $1 -eq 0 ] ; then
+    touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+fi
+update-desktop-database &> /dev/null || :
+
+%posttrans
+gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
+
+%files -f %{name}.lang
+%defattr(-,root,root,-)
+%{_bindir}/simple-image-reducer
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/pixmaps/simple-image-reducer.png
+%{_datadir}/icons/hicolor/*/apps/simple-image-reducer.*
